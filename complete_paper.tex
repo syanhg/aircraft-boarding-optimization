@@ -95,7 +95,6 @@ Our model uses the following key variables:
     \item $\rho(x,t)$: Passenger density (passengers per meter) at position $x$ and time $t$
     \item $v(x,t)$: Passenger velocity (meters per second) at position $x$ and time $t$
     \item $S(x,t)$: Source/sink term representing passengers entering or leaving the aisle
-    \item $P(x,t)$: "Pressure" term representing passenger discomfort that affects movement
 \end{itemize}
 
 \subsection{The Continuity Equation for Passenger Conservation}
@@ -118,17 +117,19 @@ Where $\delta(x - x_i)$ is the Dirac delta function at row position $x_i$, and $
 
 \subsection{The Velocity-Density Relationship}
 
-As passenger density increases, movement speed decreases. We model this using the Greenshields relationship:
+As passenger density increases, movement speed decreases. We model this using a simple linear relationship:
 
 \begin{equation}
-v(x,t) = v_{\text{free}} \left(1 - \frac{\rho(x,t)}{\rho_{\text{jam}}}\right)
+v(x,t) = v_{\text{max}} \left(1 - \frac{\rho(x,t)}{\rho_{\text{max}}}\right)
 \end{equation}
 
 Where:
 \begin{itemize}
-    \item $v_{\text{free}}$ is the free-flow walking speed (typically 1.2 m/s)
-    \item $\rho_{\text{jam}}$ is the jam density (maximum possible density in the aisle)
+    \item $v_{\text{max}}$ is the maximum walking speed (typically 1.2 m/s)
+    \item $\rho_{\text{max}}$ is the maximum possible density in the aisle
 \end{itemize}
+
+This equation captures an intuitive concept: when the aisle is empty ($\rho = 0$), passengers move at their maximum speed $v_{\text{max}}$. As density increases, speed decreases linearly, until at maximum density ($\rho = \rho_{\text{max}}$), passengers come to a complete stop ($v = 0$).
 
 \subsection{Application of Bernoulli's Equation to Aircraft Aisle Flow}
 
@@ -191,7 +192,7 @@ Combining all our equations, we get the complete system of differential equation
 
 \begin{align}
 \frac{\partial \rho}{\partial t} + \frac{\partial}{\partial x}(\rho v) &= S(x,t) \\
-v &= v_{\text{free}} \left(1 - \frac{\rho}{\rho_{\text{jam}}}\right) \\
+v &= v_{\text{max}} \left(1 - \frac{\rho}{\rho_{\text{max}}}\right) \\
 v_{\text{constricted}} &= v\sqrt{\frac{A_{\text{normal}}}{A_{\text{constricted}}}}
 \end{align}
 
@@ -320,18 +321,6 @@ Where:
 
 This condition ensures that the numerical domain of dependence includes the physical domain of dependence, preventing numerical instabilities.
 
-\subsection{Lax-Friedrichs Scheme for Handling Advection}
-
-To handle the advection term $\frac{\partial}{\partial x}(\rho v)$ in our continuity equation, we use the Lax-Friedrichs scheme:
-
-\begin{equation}
-\rho_i^{n+1} = \frac{1}{2}(\rho_{i+1}^n + \rho_{i-1}^n) - \frac{\Delta t}{2\Delta x}[F_{i+1}^n - F_{i-1}^n]
-\end{equation}
-
-Where $F_i^n = \rho_i^n v_i^n$ is the flux at position $i$ and time step $n$.
-
-This scheme introduces artificial diffusion, which smooths out numerical oscillations and increases stability at the cost of some accuracy.
-
 \section{Boarding Strategies}
 
 \subsection{Mathematical Representation of Strategies}
@@ -391,8 +380,8 @@ Our simulation uses the following parameter values:
     \item Aircraft length: $L = 30$ m
     \item Number of rows: $n_{\text{rows}} = 33$
     \item Seats per row: $n_{\text{seats per row}} = 6$
-    \item Free-flow velocity: $v_{\text{free}} = 1.2$ m/s
-    \item Jam density: $\rho_{\text{jam}} = 3.5$ passengers/m
+    \item Maximum velocity: $v_{\text{max}} = 1.2$ m/s
+    \item Maximum density: $\rho_{\text{max}} = 3.5$ passengers/m
     \item Mean seating time: 15 s
     \item Space discretization: $\Delta x = 0.5$ m
     \item Time step: $\Delta t = 0.1$ s (for Euler) and $\Delta t = 0.5$ s (for RK4)
