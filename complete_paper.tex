@@ -31,81 +31,93 @@
 \maketitle
 
 \begin{abstract}
-This paper presents a comprehensive mathematical framework for optimizing aircraft boarding and disembarkation procedures. By conceptualizing passenger movement as a fluid dynamical system, we develop a set of coupled differential equations that capture the complex interactions during these processes. Using the Boeing 737-800 as our model aircraft, we implement numerical solutions via Runge-Kutta and Euler methods, while incorporating Bernoulli's equation to model flow constraints in the narrow-body cabin. Our simulations demonstrate that traditional boarding strategies can be significantly improved, with our optimized approach combining Window-Middle-Aisle sequencing with back-to-front organization yielding a 22.5\% reduction in total boarding time compared to random boarding. These findings provide airlines with actionable insights to enhance operational efficiency, reduce turnaround times, and improve passenger experience through mathematically validated boarding protocols.
+This paper presents a mathematical framework for optimizing aircraft boarding and disembarkation procedures using differential equations. Using the Boeing 737-800 as our model aircraft, we develop a system of differential equations that describe passenger movement and implement numerical solutions including Runge-Kutta and Euler methods. By treating passenger flow as a continuous system, we can analyze different boarding strategies and their effectiveness. Our simulations demonstrate that traditional boarding methods can be significantly improved, with our optimized approach combining Window-Middle-Aisle sequencing with back-to-front organization yielding a 22.5\% reduction in total boarding time compared to random boarding. These findings provide airlines with actionable insights to enhance operational efficiency and reduce turnaround times through mathematically validated boarding protocols.
 \end{abstract}
 
 \section{Introduction}
 
 \subsection{Background}
 
-Aircraft turnaround time, which is the temporal interval between arrival and subsequent departure, is considered to be a critical operational metric for airlines. This turnaround time arises from various components, but as efficient boarding and disembarkation processes directly impact on-time performance, fuel consumption, and customer satisfaction, minimising aircraft turnaround time serves as an important factor.
+Aircraft turnaround time, which is the time interval between arrival and subsequent departure, is a critical operational metric for airlines. Efficient boarding and disembarkation processes directly impact on-time performance, fuel consumption, and customer satisfaction, making the minimization of aircraft turnaround time an important factor in airline operations.
 
-This paper applies queuing theory to examine boarding and disembarking procedures, a mathematical framework for analysing how queues form and function under congestion dynamics. While existing research extensively covers the problem of optimising boarding and disembarkation procedures from various contexts and perspectives, fundamental questions remain about whether current airline boarding methods actually minimise total passenger processing time and maximise operational efficiency. Hence, this study therefore seeks to validate the effectiveness of present boarding strategies and conduct comprehensive comparisons with alternative approaches, which will be proposed throughout the paper.
+This paper applies mathematical modeling to examine boarding and disembarking procedures. While existing research extensively covers the problem of optimizing these procedures from various perspectives, fundamental questions remain about whether current airline boarding methods actually minimize total passenger processing time and maximize operational efficiency. This study therefore seeks to validate the effectiveness of present boarding strategies and conduct comprehensive comparisons with alternative approaches.
 
-This paper seeks to optimise the time it takes for boarding and disembarkation by developing a mathematical model based on differential equations and probabilistic approach, while incorporating realistic constraints and multiple assumptions to simplify the complexity. The Boeing 737-800 has been selected as the model to be analysed due to its status as the most common single-aisle (3-3 seating configuration) commercial aircraft, as well as being the aircraft model I most frequently travel on.
+The Boeing 737-800 has been selected as the model to be analyzed due to its status as one of the most common single-aisle (3-3 seating configuration) commercial aircraft. The narrow-body design of Boeing 737-800 imposes spatial constraints that create a unidirectional movement pattern where passenger overtaking becomes negligible. This simplification allows us to model the complex discrete boarding process as a continuous flow system that can be analyzed using differential equations.
 
-The narrow-body design of Boeing 737-800 imposes spatial constraints that alter passenger flow dynamics compared to wide-body alternatives with 3-4-3 seating configurations. These geometric limitations create a unidirectional movement pattern where passenger overtaking becomes negligible, which reduces the complex discrete boarding process to a tractable continuous flow model. Thus, this simplification of the aircraft model more easily enables mathematical analysis of delay propagation mechanisms throughout the cabin system.
-
-In addition, the Boeing 737-800 model operates in a dual-class configuration (economy class and prestige class) with a total capacity of 126 passengers. The prestige class seats (12 seats) occupy the forward section from rows 7 through 9. The remainder of the aircraft is configured for economy class passengers, with seating extending from the front of the cabin through rows 48 (114 seats).
+In our model, the Boeing 737-800 operates with a total capacity of 126 passengers, with 12 prestige class seats in the forward section (rows 7-9) and 114 economy class seats in the remainder of the aircraft.
 
 \subsection{Literature Review}
 
-Previous studies on aircraft boarding optimization reveal diverse approaches and methodologies. \citet{steffen2008optimal} proposed an optimized boarding method using Markov Chain Monte Carlo simulations, suggesting that boarding window seats first, followed by middle and aisle seats, significantly reduces boarding time. \citet{vandenbriel2005} evaluated various boarding strategies using integer programming and simulation, concluding that outside-in boarding (window-middle-aisle) outperforms traditional back-to-front methods.
+Previous studies on aircraft boarding optimization reveal diverse approaches. Steffen (2008) proposed an optimized boarding method suggesting that boarding window seats first, followed by middle and aisle seats, significantly reduces boarding time. Van den Briel et al. (2005) concluded that outside-in boarding (window-middle-aisle) outperforms traditional back-to-front methods.
 
-\citet{ferrari2005} applied cellular automata models to simulate passenger boarding processes, highlighting the impact of interferences between passengers on overall boarding time. Their research emphasized the importance of considering both seat and aisle interferences in boarding simulations. \citet{milne2014} introduced a dynamic programming approach to determine optimal boarding sequences, demonstrating potential improvements of up to 25\% compared to conventional methods.
+Ferrari and Nagel (2005) highlighted the impact of interferences between passengers on overall boarding time, emphasizing the importance of considering both seat and aisle interferences. Milne and Kelly (2014) demonstrated potential improvements of up to 25\% compared to conventional methods.
 
-Despite these advances, most previous models rely on discrete agent-based simulations that become computationally intensive for large passenger numbers. Our approach differs by treating the passenger flow as a continuous fluid system governed by differential equations, enabling more efficient computation and analysis of macro-level patterns in boarding dynamics.
+Our approach differs by treating the passenger flow as a continuous system governed by differential equations, enabling more efficient analysis of the boarding dynamics.
 
 \subsection{Basic Assumptions}
 
 To develop a tractable mathematical model, we make the following fundamental assumptions:
 
 \begin{enumerate}
-    \item \textbf{Unidirectional Movement}: All passenger movement occurs in a single direction, toward the back during boarding and toward the exits during disembarkation, with no path reversal or deviations to incorrect seats allowed. The aircraft's 3-3 seating configuration with a single aisle prevents any overtaking or position swapping during movement.
+    \item \textbf{Unidirectional Movement}: All passenger movement occurs in a single direction, with no overtaking or position swapping during movement.
 
-    \item \textbf{Uniform Movement Pace}: All passengers move at a uniform, slow pace due to congestion in the aisle, and they do not stop unnecessarily except when performing essential actions such as stowing during boarding or retrieving luggage during disembarkation or sitting down.
+    \item \textbf{Uniform Movement Pace}: All passengers move at a uniform, slow pace due to congestion in the aisle, only stopping for essential actions like stowing luggage or sitting down.
 
-    \item \textbf{Continuous Flow Approximation}: The discrete process of individual passengers boarding is approximated as a continuous fluid flow through the aircraft aisle, allowing the application of fluid dynamics principles.
+    \item \textbf{Continuous Flow Approximation}: The discrete process of individual passengers boarding is approximated as a continuous flow, allowing the application of differential equations.
 
-    \item \textbf{Deterministic Seating Times}: The time taken by passengers to stow luggage and seat themselves follows a deterministic distribution with mean $\mu_s$ and variance $\sigma_s^2$.
+    \item \textbf{Simple Seating Times}: The time taken by passengers to stow luggage and seat themselves follows a simple distribution with an average time of 15 seconds.
 
-    \item \textbf{Queue Formation Dynamics}: Passengers form queues based on a first-in-first-out (FIFO) principle, with queue density following a Poisson distribution at the entrance.
+    \item \textbf{Basic Queue Formation}: Passengers form queues based on a first-in-first-out (FIFO) principle.
 
-    \item \textbf{Homogeneous Passenger Attributes}: All passengers are assumed to have similar physical attributes (mobility, luggage handling speed, etc.) with minor stochastic variations modeled as a normal distribution $N(\mu_a, \sigma_a^2)$.
+    \item \textbf{Similar Passenger Attributes}: All passengers are assumed to have similar physical attributes with minor variations.
 
-    \item \textbf{Boarding Process Conservation}: The total number of passengers remains constant throughout the process, satisfying the conservation equation $\frac{\partial \rho}{\partial t} + \frac{\partial}{\partial x}(\rho v) = 0$, where $\rho$ is passenger density and $v$ is velocity.
+    \item \textbf{Conservation of Passengers}: The total number of passengers remains constant throughout the process.
 \end{enumerate}
 
 \section{Mathematical Formulation}
 
-\subsection{Fluid Dynamics Model}
+\subsection{Introduction to Differential Equations in Passenger Flow}
 
-We model the passenger flow in the aircraft aisle as a one-dimensional compressible fluid flow. The governing equations are derived from conservation laws, resulting in a system of partial differential equations:
+Differential equations are mathematical equations that describe how a quantity changes with respect to one or more variables. In our context, we use differential equations to model how passenger density and velocity change with respect to time and position within the aircraft.
+
+A differential equation contains derivatives of the function we're trying to find. For example, if $\rho(x,t)$ represents passenger density at position $x$ and time $t$, then $\frac{\partial \rho}{\partial t}$ represents how density changes with time, and $\frac{\partial \rho}{\partial x}$ represents how density changes with position.
+
+The beauty of differential equations is that they can capture complex dynamics with relatively simple expressions. In our aircraft boarding model, differential equations allow us to describe:
+\begin{itemize}
+    \item How passengers move through the aisle
+    \item How congestion affects movement speed
+    \item How passengers exit the aisle to take their seats
+    \item How these processes evolve over time
+\end{itemize}
+
+\subsection{The Continuity Equation}
+
+The foundation of our model is the continuity equation, which is based on the principle of conservation (passengers neither appear nor disappear). The one-dimensional continuity equation is:
 
 \begin{equation}
 \frac{\partial \rho(x,t)}{\partial t} + \frac{\partial}{\partial x}[\rho(x,t)v(x,t)] = S(x,t)
 \end{equation}
 
-Where:
+Let's break down this equation:
 \begin{itemize}
-    \item $\rho(x,t)$ represents the passenger density (passengers per unit length) at position $x$ and time $t$
-    \item $v(x,t)$ is the flow velocity at position $x$ and time $t$
+    \item $\rho(x,t)$ is the passenger density (passengers per meter) at position $x$ and time $t$
+    \item $v(x,t)$ is the passenger velocity (meters per second) at position $x$ and time $t$
     \item $S(x,t)$ is a source/sink term representing passengers entering or leaving the aisle to take their seats
+    \item $\frac{\partial \rho}{\partial t}$ is the rate of change of density with time
+    \item $\frac{\partial}{\partial x}[\rho v]$ is the rate of change of passenger flux with position
 \end{itemize}
 
-The source/sink term is modeled as:
+The term $S(x,t)$ captures the process of passengers leaving the aisle to sit down:
 
 \begin{equation}
 S(x,t) = -\sum_{i=1}^{n_{\text{rows}}} \sum_{j=1}^{n_{\text{seats per row}}} \delta(x - x_i) \cdot \lambda_{ij}(t)
 \end{equation}
 
-Where:
-\begin{itemize}
-    \item $\delta(x - x_i)$ is the Dirac delta function at row position $x_i$
-    \item $\lambda_{ij}(t)$ is the rate at which passengers exit the aisle to sit in seat $j$ of row $i$ at time $t$
-\end{itemize}
+Where $\delta(x - x_i)$ represents a specific row position, and $\lambda_{ij}(t)$ is the rate at which passengers sit down in specific seats.
 
-The passenger velocity $v(x,t)$ depends on the density according to the Greenshields model:
+\subsection{The Velocity-Density Relationship}
+
+A key insight in traffic flow modeling is that velocity depends on density. As more passengers crowd the aisle, everyone moves slower. We model this using the Greenshields relationship:
 
 \begin{equation}
 v(x,t) = v_{\text{free}} \left(1 - \frac{\rho(x,t)}{\rho_{\text{jam}}}\right)
@@ -113,65 +125,68 @@ v(x,t) = v_{\text{free}} \left(1 - \frac{\rho(x,t)}{\rho_{\text{jam}}}\right)
 
 Where:
 \begin{itemize}
-    \item $v_{\text{free}}$ is the free-flow walking speed (typically 1.2 m/s)
+    \item $v_{\text{free}}$ is the free-flow walking speed (typically 1.2 m/s) when the aisle is empty
     \item $\rho_{\text{jam}}$ is the jam density (maximum possible density in the aisle)
 \end{itemize}
 
-\subsection{Queueing Theory Integration}
+This equation captures an intuitive concept: when the aisle is empty ($\rho = 0$), passengers move at their maximum speed $v_{\text{free}}$. As density increases, speed decreases linearly, until at maximum density ($\rho = \rho_{\text{jam}}$), passengers come to a complete stop ($v = 0$).
 
-We model the boarding process as an M/G/1 queue at each seat, where:
+\subsection{The Complete System of Differential Equations}
+
+Combining the continuity equation with the velocity-density relationship creates a coupled system of differential equations:
+
+\begin{align}
+\frac{\partial \rho}{\partial t} + \frac{\partial}{\partial x}(\rho v) &= S(x,t) \\
+v &= v_{\text{free}} \left(1 - \frac{\rho}{\rho_{\text{jam}}}\right)
+\end{align}
+
+This system is non-linear because the velocity equation depends on density, and the continuity equation contains the product of density and velocity. Such non-linear systems typically require numerical methods to solve.
+
+\section{Numerical Methods for Solving Differential Equations}
+
+\subsection{Why We Need Numerical Methods}
+
+The differential equations in our model are too complex to solve analytically (with pen and paper). This is because:
 \begin{itemize}
-    \item M: Passenger arrivals follow a Markovian (Poisson) process
-    \item G: General service time distribution for seating
-    \item 1: Single server (seat)
+    \item They are non-linear
+    \item They involve both time and space derivatives (partial differential equations)
+    \item They have complex boundary conditions
+    \item The source/sink term is complicated
 \end{itemize}
 
-The waiting time for a passenger at row $i$ is given by the Pollaczek-Khinchine formula:
+Therefore, we must use numerical methods, which approximate the solution by calculating values at discrete points in time and space.
+
+\subsection{Euler's Method: A Simple Approach}
+
+Euler's method is one of the simplest numerical methods for solving differential equations. For an ordinary differential equation $\frac{dy}{dt} = f(t, y)$, Euler's method gives:
 
 \begin{equation}
-W_i = \frac{\lambda_i \mathbb{E}[S_i^2]}{2(1-\rho_i)}
+y_{n+1} = y_n + h \cdot f(t_n, y_n)
 \end{equation}
 
 Where:
 \begin{itemize}
-    \item $\lambda_i$ is the arrival rate at row $i$
-    \item $\mathbb{E}[S_i^2]$ is the second moment of the service time distribution
-    \item $\rho_i = \lambda_i \mathbb{E}[S_i]$ is the utilization factor
+    \item $y_n$ is the value at time $t_n$
+    \item $y_{n+1}$ is the value at time $t_{n+1} = t_n + h$
+    \item $h$ is the time step
+    \item $f(t_n, y_n)$ is the rate of change at time $t_n$
 \end{itemize}
 
-\subsection{Differential Equation System}
+Euler's method is easy to understand: it simply estimates the next value by taking the current value and adding the product of the time step and the rate of change.
 
-The complete system is described by a set of coupled differential equations:
-
-\begin{align}
-\frac{\partial \rho}{\partial t} + \frac{\partial}{\partial x}(\rho v) &= S(x,t) \\
-\frac{\partial v}{\partial t} + v\frac{\partial v}{\partial x} &= -\frac{1}{\rho}\frac{\partial P}{\partial x} \\
-P &= P_0 \left(\frac{\rho}{\rho_0}\right)^\gamma
-\end{align}
-
-Where $P$ represents the "pressure" in the system (analogous to passenger discomfort), and $\gamma$ is a parameter of the model.
-
-\subsection{Bernoulli's Equation Application}
-
-To model flow acceleration in constricted sections of the aisle, we apply Bernoulli's equation:
+For our system of partial differential equations, we need to discretize in both time and space. For the spatial discretization, we can use finite differences:
 
 \begin{equation}
-P_1 + \frac{1}{2}\rho v_1^2 + \rho g h_1 = P_2 + \frac{1}{2}\rho v_2^2 + \rho g h_2
+\frac{\partial \rho}{\partial x} \approx \frac{\rho_{i+1} - \rho_{i-1}}{2\Delta x}
 \end{equation}
 
-In our context, with negligible height differences and assuming similar discomfort levels, we derive:
+Where $\rho_i$ is the density at position $x_i$, and $\Delta x$ is the spatial step size.
 
-\begin{equation}
-v_2 = v_1\sqrt{\frac{A_1}{A_2}}
-\end{equation}
+\subsection{Runge-Kutta Method: A More Accurate Approach}
 
-Where $A_1$ and $A_2$ are the effective aisle cross-sectional areas at different points.
+While Euler's method is simple, it can be inaccurate for complex systems. The fourth-order Runge-Kutta method (RK4) provides better accuracy by evaluating the rate of change at multiple points within each time step.
 
-\section{Numerical Methods}
-
-\subsection{Runge-Kutta Method Implementation}
-
-To solve our system of differential equations numerically, we employ the fourth-order Runge-Kutta method. For a general ODE system $\frac{d\mathbf{y}}{dt} = \mathbf{f}(t, \mathbf{y})$, we compute:
+For an ODE system $\frac{d\mathbf{y}}{dt} = \mathbf{f}(t, \mathbf{y})$, the RK4 method computes:
 
 \begin{align}
 \mathbf{k}_1 &= \mathbf{f}(t_n, \mathbf{y}_n) \\
@@ -181,21 +196,19 @@ To solve our system of differential equations numerically, we employ the fourth-
 \mathbf{y}_{n+1} &= \mathbf{y}_n + \frac{h}{6}(\mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4)
 \end{align}
 
-Where $h$ is the time step size.
+The idea behind RK4 is to take a weighted average of four different estimates of the rate of change:
+\begin{itemize}
+    \item $\mathbf{k}_1$ is the rate at the beginning of the interval
+    \item $\mathbf{k}_2$ is the rate at the midpoint, using $\mathbf{k}_1$ to get there
+    \item $\mathbf{k}_3$ is the rate at the midpoint, using $\mathbf{k}_2$ to get there
+    \item $\mathbf{k}_4$ is the rate at the end, using $\mathbf{k}_3$ to get there
+\end{itemize}
 
-\subsection{Euler's Method for Validation}
+The final estimate is a weighted average that gives more weight to the midpoint estimates.
 
-For comparison and validation purposes, we also implement the simpler Euler's method:
+\subsection{Lax-Friedrichs Scheme for Stability}
 
-\begin{equation}
-\mathbf{y}_{n+1} = \mathbf{y}_n + h\mathbf{f}(t_n, \mathbf{y}_n)
-\end{equation}
-
-Our numerical experiments show that the Runge-Kutta method provides more accurate results, especially in regions with rapidly changing passenger density, though at a higher computational cost than Euler's method.
-
-\subsection{Lax-Friedrichs Scheme}
-
-To handle the advection terms in our PDE system, we employ the Lax-Friedrichs scheme, which provides numerical stability:
+When solving the advection part of our equations (the term $\frac{\partial}{\partial x}(\rho v)$), we need to ensure numerical stability. The Lax-Friedrichs scheme helps with this:
 
 \begin{equation}
 \rho_i^{n+1} = \frac{1}{2}(\rho_{i+1}^n + \rho_{i-1}^n) - \frac{\Delta t}{2\Delta x}(F_{i+1}^n - F_{i-1}^n)
@@ -203,91 +216,39 @@ To handle the advection terms in our PDE system, we employ the Lax-Friedrichs sc
 
 Where $F_i^n = \rho_i^n v_i^n$ is the flux at position $i$ and time step $n$.
 
-\subsection{Error Analysis}
-
-We quantify numerical errors using the L2 norm:
-
-\begin{equation}
-E = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(y_i^{\text{numerical}} - y_i^{\text{exact}})^2}
-\end{equation}
-
-For our fluid dynamics model, the Runge-Kutta method demonstrates an error of order $O(h^4)$, while Euler's method shows an error of order $O(h)$, confirming the superior accuracy of the fourth-order approach.
+This scheme introduces numerical diffusion, which smooths out sharp changes and prevents numerical instabilities.
 
 \section{Boarding Strategies}
 
 \subsection{Mathematical Representation of Strategies}
 
-Each boarding strategy can be represented as a specific initial condition for our PDE system. Let $\Omega = \{1, 2, \ldots, N\}$ be the set of all passengers, and $\pi: \Omega \rightarrow \{1, 2, \ldots, N\}$ be a permutation that defines the boarding sequence.
+Each boarding strategy can be represented as a specific initial condition and boundary condition for our differential equations. We consider the following strategies:
 
 \subsubsection{Back-to-Front Strategy}
 
-The back-to-front strategy assigns boarding priority based on row numbers:
-
-\begin{equation}
-\pi_{\text{BTF}}(i) = N - \text{row}(i) + 1
-\end{equation}
-
-This creates an initial condition where passenger density is higher at the back of the plane initially.
+In the back-to-front strategy, passengers are grouped by row sections and board from the back of the aircraft to the front. Mathematically, we can represent this by assigning boarding priority based on row numbers.
 
 \subsubsection{Window-Middle-Aisle (WMA) Strategy}
 
-In the WMA strategy, seat location determines priority:
-
-\begin{equation}
-\pi_{\text{WMA}}(i) = 3 \cdot \text{row}(i) - \text{seat\_type}(i)
-\end{equation}
-
-Where seat\_type is 0 for window, 1 for middle, and 2 for aisle seats.
+In the WMA strategy, passengers with window seats board first, followed by those with middle seats, and finally those with aisle seats. This minimizes the need for seated passengers to stand up to let others access their seats.
 
 \subsubsection{Random Strategy}
 
-The random strategy assigns a uniform random permutation:
-
-\begin{equation}
-\pi_{\text{Random}}(i) \sim \text{Uniform}(1, N)
-\end{equation}
+The random strategy, which serves as our baseline, has no specific ordering. Passengers board in a random sequence.
 
 \subsubsection{Optimized Strategy}
 
-Our proposed optimized strategy combines the benefits of WMA and back-to-front approaches:
-
-\begin{equation}
-\pi_{\text{Opt}}(i) = N \cdot (3 - \text{seat\_type}(i)) - \text{row}(i)
-\end{equation}
-
-This prioritizes window seats in the back of the aircraft, followed by window seats in the front, then middle seats in the back, and so on.
+Our proposed optimized strategy combines the benefits of WMA and back-to-front approaches. It prioritizes window seats in the back of the aircraft, followed by window seats in the front, then middle seats in the back, and so on.
 
 \subsection{Strategy Evaluation Metric}
 
-To compare strategies, we define the total boarding time $T_{\text{total}}$ as:
+To compare strategies, we define the total boarding time as the time when all passengers have taken their seats:
 
 \begin{equation}
 T_{\text{total}} = \min\{t : \rho(x,t) < \epsilon \text{ for all } x \in [0, L]\}
 \end{equation}
 
 Where $L$ is the length of the aircraft cabin and $\epsilon$ is a small threshold value.
-
-\section{Disembarkation Model}
-
-\subsection{Key Differences from Boarding}
-
-The disembarkation process follows similar principles but with reversed flow direction. The governing equation becomes:
-
-\begin{equation}
-\frac{\partial \rho(x,t)}{\partial t} - \frac{\partial}{\partial x}[\rho(x,t)v(x,t)] = -S'(x,t)
-\end{equation}
-
-Where $S'(x,t)$ represents passengers entering the aisle from their seats.
-
-\subsection{Initial Conditions}
-
-For disembarkation, the initial condition is:
-
-\begin{equation}
-\rho(x,0) = \sum_{i=1}^{n_{\text{rows}}} \sum_{j=1}^{n_{\text{seats per row}}} \delta(x - x_i) \cdot \theta_{ij}
-\end{equation}
-
-Where $\theta_{ij}$ is 1 if seat $(i,j)$ is occupied and 0 otherwise.
 
 \section{Simulation Results}
 
@@ -301,7 +262,6 @@ Our simulation uses the following parameter values:
     \item Free-flow velocity: $v_{\text{free}} = 1.2$ m/s
     \item Jam density: $\rho_{\text{jam}} = 3.5$ passengers/m
     \item Mean seating time: $\mu_s = 15$ s
-    \item Seating time variance: $\sigma_s^2 = 25$ s²
 \end{itemize}
 
 \subsection{Strategy Comparison}
@@ -352,35 +312,23 @@ Comparing Runge-Kutta and Euler methods reveals that:
     \item The computational overhead of Runge-Kutta is justified by its increased accuracy, especially for long simulation periods
 \end{itemize}
 
-\subsection{Bernoulli Effect Analysis}
-
-Our analysis of the Bernoulli effect in narrow sections of the aircraft aisle shows that:
-\begin{itemize}
-    \item Passenger velocity increases by up to 25\% in constricted areas
-    \item This acceleration creates downstream consequences, including density waves
-    \item Accounting for this effect improves model accuracy by approximately 12\%
-\end{itemize}
+This comparison illustrates a fundamental trade-off in numerical methods: accuracy versus computational efficiency. For our application, the increased accuracy of the Runge-Kutta method is worth the additional computation time.
 
 \section{Discussion}
 
-\subsection{Sensitivity Analysis}
+\subsection{Understanding the Results Through Differential Equations}
 
-The sensitivity of boarding time $T$ to various parameters can be expressed as:
+Our differential equation model helps explain why certain boarding strategies outperform others:
 
-\begin{equation}
-\frac{\partial T}{\partial \lambda} = \int_0^L \int_0^T \frac{\partial \rho(x,t)}{\partial \lambda} dx dt
-\end{equation}
-
-Where $\lambda$ is any model parameter.
-
-Our sensitivity analysis reveals that boarding time is most sensitive to:
 \begin{enumerate}
-    \item Mean seating time (elasticity = 0.83)
-    \item Free-flow velocity (elasticity = -0.67)
-    \item Passenger arrival rate (elasticity = 0.52)
-\end{enumerate}
+    \item \textbf{Window-Middle-Aisle Success}: The WMA strategy minimizes the source term $S(x,t)$ by reducing seat interferences. When a passenger in an aisle seat must stand to let others reach window seats, it creates a temporary blockage in the aisle. By boarding window passengers first, these interferences are eliminated.
 
-This suggests that airlines should focus on reducing seating time (through improved luggage handling and passenger instruction) to achieve the greatest improvements in boarding efficiency.
+    \item \textbf{Back-to-Front Benefits}: The back-to-front strategy creates a more favorable density distribution along the aircraft, reducing the congestion term $\frac{\partial}{\partial x}(\rho v)$ in our differential equation. This allows passengers to move more freely to their assigned seats.
+
+    \item \textbf{Front-to-Back Problems}: This strategy creates high density at the front of the aircraft, making the velocity term $v(x,t)$ approach zero due to our velocity-density relationship. When velocity is near zero, the boarding process stalls.
+
+    \item \textbf{Optimized Strategy Advantage}: By combining WMA and back-to-front approaches, our optimized strategy minimizes both the source term and the congestion term in our differential equation, leading to the best performance.
+\end{enumerate}
 
 \subsection{Practical Implications}
 
@@ -400,34 +348,32 @@ Moreover, the implementation of our optimized boarding strategy requires minimal
 While our model provides valuable insights, it has several limitations:
 
 \begin{enumerate}
-    \item \textbf{Homogeneous Passenger Assumption}: In reality, passengers have varying mobility levels, luggage quantities, and group constraints.
+    \item \textbf{Simplification of Passenger Behavior}: In reality, passengers have varying mobility levels, luggage quantities, and may travel in groups.
 
     \item \textbf{Simplified Aircraft Geometry}: Our model uses a uniform aisle width, whereas actual aircraft have variations in aisle dimensions.
 
-    \item \textbf{Deterministic Behavior}: Our model does not fully capture the stochasticity of human behavior during boarding.
+    \item \textbf{Deterministic Approach}: Our model does not fully capture the random nature of human behavior during boarding.
 \end{enumerate}
 
 Future research should address these limitations by:
 \begin{itemize}
-    \item Incorporating heterogeneous passenger characteristics
+    \item Incorporating more realistic passenger characteristics
     \item Modeling multiple boarding doors and complex aircraft geometries
     \item Developing adaptive strategies that respond to real-time boarding conditions
-    \item Integrating psychological factors that influence passenger behavior
 \end{itemize}
 
 \section{Conclusion}
 
-This paper has presented a comprehensive mathematical framework for analyzing and optimizing aircraft boarding and disembarkation processes. By modeling passenger movement as a fluid dynamics system governed by differential equations, we have demonstrated that significant improvements in boarding efficiency can be achieved through strategic passenger sequencing.
+This paper has presented a mathematical framework for analyzing and optimizing aircraft boarding processes using differential equations. By modeling passenger movement as a continuous system, we have demonstrated that significant improvements in boarding efficiency can be achieved through strategic passenger sequencing.
 
 Our key contributions include:
 \begin{enumerate}
-    \item A novel continuous fluid dynamics model for aircraft boarding
-    \item Integration of Runge-Kutta methods for accurate numerical solutions
-    \item Application of Bernoulli's equation to model flow constraints
+    \item A differential equation model for aircraft boarding that captures the essential dynamics of passenger movement
+    \item Numerical implementation using both Euler's method and the more accurate Runge-Kutta method
     \item Development of an optimized boarding strategy that combines window-middle-aisle sequencing with back-to-front organization
 \end{enumerate}
 
-The optimized strategy shows a 22.5\% reduction in boarding time compared to random boarding, offering airlines a practical approach to improve operational efficiency with minimal implementation costs. Future work should focus on incorporating greater passenger heterogeneity, multiple boarding doors, and adaptive strategies to further enhance the model's realism and applicability.
+The optimized strategy shows a 22.5\% reduction in boarding time compared to random boarding, offering airlines a practical approach to improve operational efficiency with minimal implementation costs.
 
 By adopting these mathematically validated boarding procedures, airlines can significantly reduce turnaround times, improve on-time performance, and enhance the overall passenger experience.
 
@@ -458,11 +404,6 @@ Milne, R.~J. \& Kelly, A.~R. (2014).
 Qiang, S.~J., Jia, B., Xie, D.~F., \& Gao, Z.~Y. (2014).
 \newblock Reducing airplane boarding time by accounting for passengers' individual properties: A simulation based on cellular automaton.
 \newblock \emph{Journal of Air Transport Management}, 40:42--47.
-
-\bibitem[Tang et~al.(2012)]{tang2012}
-Tang, T.~Q., Wu, Y.~H., Huang, H.~J., \& Caccetta, L. (2012).
-\newblock An aircraft boarding model accounting for passengers' individual properties.
-\newblock \emph{Transportation Research Part C: Emerging Technologies}, 22:1--16.
 
 \bibitem[Schultz(2018)]{schultz2018}
 Schultz, M. (2018).
